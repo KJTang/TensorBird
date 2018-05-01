@@ -36,13 +36,8 @@ class Sprite():
             if self._children[i] == child: 
                 self._children.pop(i);
                 if destroy: 
-                    child.Destroy();
+                    del child;
                 break;
-
-    def Destroy(self): 
-        for child in self._children: 
-            child.Destroy();
-        del self;
 
     def GetChildren(self): 
         return self._children;
@@ -92,4 +87,10 @@ class Sprite():
     @property
     def Height(self):
         return self._size.y;
+
+    @property
+    def Rect(self): 
+        if self._is_pos_dirty: 
+            self._rect = pygame.Rect(self.Position.x, self.Position.y, self.Width, self.Height);
+        return self._rect;
 

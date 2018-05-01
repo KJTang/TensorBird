@@ -33,6 +33,7 @@ def main():
         game_manager.Update(scene);
 
         # render
+        screen.fill((0, 0, 0));     # clear
         game_manager.Render(screen, scene);
         pygame.display.flip(); 
 
