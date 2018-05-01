@@ -16,6 +16,7 @@ kPipeCreateInterval = 100;   # frames
 class Pipe(Sprite):
     def __init__(self):
         Sprite.__init__(self, kPipePath);
+        self._reverse = False;
 
     def SetupPipe(self, reverse, offset): 
         if reverse: 
@@ -23,6 +24,10 @@ class Pipe(Sprite):
             self.LocalPosition = Vector2.Add(Vector2(0, game_manager.ScreenHeight / 2 - self.Height - kPipeGapHeight), offset);
         else:
             self.LocalPosition = Vector2.Add(Vector2(0, game_manager.ScreenHeight / 2), offset);
+        self._reverse = reverse;
+
+    def IsReversed(self): 
+        return self._reverse;
 
 
 class PipeCreator(Sprite): 
@@ -60,7 +65,7 @@ class PipeCreator(Sprite):
         # destroy
         to_remove = [];
         for pipe in self._pipes: 
-            if pipe.LocalPosition.x < 0: 
+            if pipe.LocalPosition.x + pipe.Width < 0: 
                 to_remove.append(pipe);
         for pipe in to_remove: 
             self.RemovePipe(pipe);

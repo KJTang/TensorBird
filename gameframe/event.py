@@ -7,12 +7,12 @@ class EventManager(Singleton):
     def Init(self):
         self._evt = dict();
 
-    def Register(event, callback): 
+    def Register(self, event, callback): 
         if event not in self._evt: 
             self._evt[event] = [];
         self._evt[event].append(callback);
 
-    def Unregister(event, callback): 
+    def Unregister(self, event, callback): 
         if event not in self._evt: 
             return;
 
@@ -22,10 +22,13 @@ class EventManager(Singleton):
                 evt_list.pop(i);
                 break;
 
-    def Dispatch(event): 
+    def Dispatch(self, event, data = None): 
         if event not in self._evt: 
             return;
 
         evt_list = self._evt[event];
         for callback in evt_list: 
-            callback();
+            if not data is None: 
+                callback(data);
+            else: 
+                callback();

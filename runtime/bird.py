@@ -1,9 +1,11 @@
 from gameframe.sprite import Sprite
 from gameframe.animation import Animation
 from gameframe.vector import Vector2
+from gameframe.event import EventManager
 from runtime.game_manager import GameManager
 
 game_manager = GameManager();
+event_manager = EventManager();
 
 kBirdAnimPath = [
     "image/redbird-midflap.png", 
@@ -12,10 +14,22 @@ kBirdAnimPath = [
 ]
 
 kBirdAnimInterval = 20;
+kBirdFlapVelocity = 3;
+kBirdAcceleration = -0.1;
 
 class Bird(Animation):
     def __init__(self):
         Animation.__init__(self, kBirdAnimPath[0], kBirdAnimPath, kBirdAnimInterval);
+        self._velocity = 0;
+        event_manager.Register("GAME_FLAP", self.Flap);
 
-    def Flap(): 
-        pass
+    def Flap(self): 
+        self._velocity = kBirdFlapVelocity;
+
+    def Update(self): 
+        passedTime = 1;     # passed 1 frame
+        lastV = self._velocity;
+        curV = self._velocity + kBirdAcceleration * passedTime; 
+        offsetY = (lastV + curV) / 2 * passedTime;
+        self.LocalPosition = Vector2(self.LocalPosition.x, self.LocalPosition.y - offsetY);
+        self._velocity = curV;

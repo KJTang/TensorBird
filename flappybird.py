@@ -1,8 +1,12 @@
 import time
 import pygame
 
+from gameframe.event import EventManager
 from runtime.game_manager import GameManager
 from runtime.play_scene import PlayScene
+
+game_manager = GameManager();
+event_manager = EventManager();
 
 def main():
     pygame.init();
@@ -13,32 +17,38 @@ def main():
     pygame.display.set_caption("Flappy Bird")
      
     # init game
-    game_manager = GameManager();
     screen = pygame.display.set_mode((game_manager.ScreenWidth, game_manager.ScreenHeight))
     clock = pygame.time.Clock()
-    scene = PlayScene();
+    # entry scene
+    game_manager.Restart(PlayScene());
 
-    # define a variable to control the main loop
-    running = True
     # main loop
-    while running: 
+    while game_manager.Running: 
         # event handling, gets all event from the eventqueue
         for event in pygame.event.get():
-            # only do something if the event is of type QUIT
             if event.type == pygame.QUIT:
-                # change the value to False, to exit the main loop
-                running = False
+                event_manager.Dispatch("GAME_REALLY_QUIT");
+
+            # trigger flap
+            if event.type == pygame.MOUSEBUTTONDOWN: 
+                event_manager.Dispatch("GAME_FLAP");
+            if event.type == pygame.KEYDOWN:
+                # if event.key == pygame.K_RETURN:
+                event_manager.Dispatch("GAME_FLAP");
 
         # logic update
-        game_manager.Update(scene);
+        game_manager.Update();
 
         # render
         screen.fill((0, 0, 0));     # clear
-        game_manager.Render(screen, scene);
+        game_manager.Render(screen);
         pygame.display.flip(); 
 
         # fps
         clock.tick(game_manager.TargetFPS);
+
+        if game_manager.NeedRestart: 
+            game_manager.Restart(PlayScene());
      
      
 # run the main function only if this module is executed as the main script

@@ -2,12 +2,15 @@ from gameframe.sprite import Sprite
 from gameframe.animation import Animation
 from gameframe.vector import Vector2
 from gameframe.rect import Rect
+from gameframe.event import EventManager
 
 from runtime.game_manager import GameManager
 from runtime.bird import Bird
+from runtime.reward import Reward
 from runtime.pipe import PipeCreator
 
 game_manager = GameManager();
+event_manager = EventManager();
 
 kBackgroundPath = "image/background-black.png";
 kForegroundPath = "image/base.png";
@@ -33,25 +36,45 @@ class PlayScene(Sprite):
         # pipe 
         self.pipe_creator = PipeCreator();
         self.AddChild(self.pipe_creator);
+        self.lastPipe = None;
 
         # fg
-        foreground = Sprite(kForegroundPath);
-        foreground.LocalPosition = Vector2(abs(game_manager.ScreenWidth - foreground.Width) / 2, game_manager.ScreenHeight - foreground.Height);
-        self.AddChild(foreground);
+        self.foreground = Sprite(kForegroundPath);
+        self.foreground.LocalPosition = Vector2(abs(game_manager.ScreenWidth - self.foreground.Width) / 2, game_manager.ScreenHeight - self.foreground.Height);
+        self.AddChild(self.foreground);
 
         # bird
         self.bird = Bird();
         self.bird.LocalPosition = Vector2(kBirdOriginPosX, kBirdOriginPosY);
         self.AddChild(self.bird);
-        self.debug = False;
+
+        # reward
+        self.reward = Reward();
+        self.AddChild(self.reward);
+
+        event_manager.Register("GAME_REWARD", self.OnRewarding);
 
     def Update(self): 
-        if not self.debug: 
-            self.debug = True;
-            rect = self.bird.Rect;
-
         pipes = self.pipe_creator.GetPipes()
+
+        # collision check
+        if Rect.isOverlapRect(self.bird.Rect, self.foreground.Rect): 
+            event_manager.Dispatch("GAME_DIED");
+        else: 
+            for pipe in pipes: 
+                if Rect.isOverlapRect(self.bird.Rect, pipe.Rect): 
+                    event_manager.Dispatch("GAME_DIED");
+                    break;
+            
+
+        # collect reward
         for pipe in pipes: 
-            if Rect.isOverlapRect(self.bird.Rect, pipe.Rect): 
-                game_manager.Log("Collision!!!!!!!!!!!");
-                break;
+            if self.bird.Position.x >= pipe.Position.x and pipe.IsReversed(): # we only use one side pipes
+                if pipe != self.lastPipe: 
+                    self.lastPipe = pipe;
+                    event_manager.Dispatch("GAME_REWARD");
+                    break;
+
+
+    def OnRewarding(self): 
+        self.reward.SetReward(game_manager.Reward);
