@@ -15,7 +15,7 @@ kBirdAnimInterval = 20;
 
 class Bird(Animation):
     def __init__(self):
-        Animation.__init__(self, kBirdAnimPath, kBirdAnimInterval);
+        Animation.__init__(self, kBirdAnimPath[0], kBirdAnimPath, kBirdAnimInterval);
 
     def Flap(): 
         pass

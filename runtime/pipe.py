@@ -75,5 +75,5 @@ class PipeCreator(Sprite):
                 self._pipes.pop(i);
                 break;
 
-    def GetPipes(self, pipe): 
+    def GetPipes(self): 
         return self._pipes;

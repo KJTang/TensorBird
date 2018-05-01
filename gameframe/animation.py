@@ -4,12 +4,12 @@ from gameframe.sprite import Sprite
 from gameframe.logger import Logger
 
 class Animation(Sprite): 
-    def __init__(self, paths = None, interval = 1, loop = True):
-        Sprite.__init__(self, "");
+    def __init__(self, static_path = "" , anim_paths = None, interval = 1, loop = True):
+        Sprite.__init__(self, static_path);
         self._frames = None;
         self._interval = interval if interval >= 1 else 1;
         self._loop = loop;
-        self.AddFrames(paths);
+        self.AddFrames(anim_paths);
 
         self._timer = 0;
         self._index = 0;

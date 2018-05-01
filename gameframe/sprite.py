@@ -1,5 +1,6 @@
 import pygame
 from gameframe.vector import Vector2
+from gameframe.rect import Rect
 from gameframe.logger import Logger
 
 logger = Logger();
@@ -19,6 +20,7 @@ class Sprite():
         if (not path is None) and (path != ""): 
             self._img = pygame.image.load(path)
             self._size = Vector2(self._img.get_width(), self._img.get_height());
+        self._rect = Rect(self.Position.x, self.Position.y, self.Size.x, self.Size.y);
 
     def Update(self): 
         pass;
@@ -90,7 +92,6 @@ class Sprite():
 
     @property
     def Rect(self): 
-        if self._is_pos_dirty: 
-            self._rect = pygame.Rect(self.Position.x, self.Position.y, self.Width, self.Height);
+        self._rect = Rect(self.Position.x, self.Position.y, self.Width, self.Height);
         return self._rect;
 

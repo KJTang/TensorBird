@@ -1,6 +1,7 @@
 from gameframe.sprite import Sprite
 from gameframe.animation import Animation
 from gameframe.vector import Vector2
+from gameframe.rect import Rect
 
 from runtime.game_manager import GameManager
 from runtime.bird import Bird
@@ -19,7 +20,7 @@ kAnimPath = [
 ];
 
 kBirdOriginPosX = game_manager.ScreenWidth * 0.3;
-kBirdOriginPosY = game_manager.ScreenHeight * 0.3;
+kBirdOriginPosY = game_manager.ScreenHeight * 0.1;
 
 class PlayScene(Sprite):
     def __init__(self):
@@ -30,8 +31,8 @@ class PlayScene(Sprite):
         self.AddChild(background);
 
         # pipe 
-        pipe_creator = PipeCreator();
-        self.AddChild(pipe_creator);
+        self.pipe_creator = PipeCreator();
+        self.AddChild(self.pipe_creator);
 
         # fg
         foreground = Sprite(kForegroundPath);
@@ -42,3 +43,15 @@ class PlayScene(Sprite):
         self.bird = Bird();
         self.bird.LocalPosition = Vector2(kBirdOriginPosX, kBirdOriginPosY);
         self.AddChild(self.bird);
+        self.debug = False;
+
+    def Update(self): 
+        if not self.debug: 
+            self.debug = True;
+            rect = self.bird.Rect;
+
+        pipes = self.pipe_creator.GetPipes()
+        for pipe in pipes: 
+            if Rect.isOverlapRect(self.bird.Rect, pipe.Rect): 
+                game_manager.Log("Collision!!!!!!!!!!!");
+                break;
