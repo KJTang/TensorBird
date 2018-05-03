@@ -30,6 +30,7 @@ class GameManager(Singleton):
         self._running = True;
         self._need_restart = False;
         self._reward = 0;
+        self._logger.Clear();
 
     @property
     def ScreenWidth(self): 

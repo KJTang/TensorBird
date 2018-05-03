@@ -18,6 +18,9 @@ class Logger(Singleton):
         if len(self._text_list) >= kMaxLog: 
             self._text_list.pop(0);
 
+    def Clear(self): 
+        self._text_list = [];
+
     def Update(self): 
         pass
 
