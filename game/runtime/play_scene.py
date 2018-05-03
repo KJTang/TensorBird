@@ -5,22 +5,17 @@ from gameframe.rect import Rect
 from gameframe.event import EventManager
 
 from runtime.game_manager import GameManager
+from runtime.sprite_loader import SpriteLoader
 from runtime.bird import Bird
 from runtime.reward import Reward
 from runtime.pipe import PipeCreator
 
 game_manager = GameManager();
 event_manager = EventManager();
+sprite_loader = SpriteLoader();
 
-kBackgroundPath = "image/background-black.png";
-kForegroundPath = "image/base.png";
-kAnimPath = [
-    "image/0.png", 
-    "image/1.png", 
-    "image/2.png", 
-    "image/3.png", 
-    "image/4.png", 
-];
+kBackgroundPath = sprite_loader.GetImagePath("image/background-black.png");
+kForegroundPath = sprite_loader.GetImagePath("image/base.png");
 
 kBirdOriginPosX = game_manager.ScreenWidth * 0.3;
 kBirdOriginPosY = game_manager.ScreenHeight * 0.1;

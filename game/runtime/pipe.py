@@ -3,11 +3,14 @@ import pygame
 from gameframe.singleton import Singleton
 from gameframe.sprite import Sprite
 from gameframe.vector import Vector2
+
 from runtime.game_manager import GameManager
+from runtime.sprite_loader import SpriteLoader
 
 game_manager = GameManager();
+sprite_loader = SpriteLoader();
 
-kPipePath = "image/pipe-green.png"; 
+kPipePath = sprite_loader.GetImagePath("image/pipe-green.png"); 
 kPipeSpeed = -3;
 kPipeGapHeight = 120;
 kPipeMaxOffset = 120;

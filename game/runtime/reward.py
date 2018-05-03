@@ -3,22 +3,25 @@ from gameframe.sprite import Sprite
 from gameframe.animation import Animation
 from gameframe.vector import Vector2
 from gameframe.event import EventManager
+
 from runtime.game_manager import GameManager
+from runtime.sprite_loader import SpriteLoader
 
 game_manager = GameManager();
 event_manager = EventManager();
+sprite_loader = SpriteLoader();
 
 kRewardPath = [
-    "image/0.png", 
-    "image/1.png", 
-    "image/2.png", 
-    "image/3.png", 
-    "image/4.png", 
-    "image/5.png", 
-    "image/6.png", 
-    "image/7.png", 
-    "image/8.png", 
-    "image/9.png", 
+    sprite_loader.GetImagePath("image/0.png"), 
+    sprite_loader.GetImagePath("image/1.png"), 
+    sprite_loader.GetImagePath("image/2.png"), 
+    sprite_loader.GetImagePath("image/3.png"), 
+    sprite_loader.GetImagePath("image/4.png"), 
+    sprite_loader.GetImagePath("image/5.png"), 
+    sprite_loader.GetImagePath("image/6.png"), 
+    sprite_loader.GetImagePath("image/7.png"), 
+    sprite_loader.GetImagePath("image/8.png"), 
+    sprite_loader.GetImagePath("image/9.png"), 
 ];
 
 kRewardLen = 3;

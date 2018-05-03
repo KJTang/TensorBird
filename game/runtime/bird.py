@@ -2,15 +2,18 @@ from gameframe.sprite import Sprite
 from gameframe.animation import Animation
 from gameframe.vector import Vector2
 from gameframe.event import EventManager
+
 from runtime.game_manager import GameManager
+from runtime.sprite_loader import SpriteLoader
 
 game_manager = GameManager();
 event_manager = EventManager();
+sprite_loader = SpriteLoader();
 
 kBirdAnimPath = [
-    "image/redbird-midflap.png", 
-    "image/redbird-upflap.png", 
-    "image/redbird-downflap.png", 
+    sprite_loader.GetImagePath("image/redbird-midflap.png"), 
+    sprite_loader.GetImagePath("image/redbird-upflap.png"), 
+    sprite_loader.GetImagePath("image/redbird-downflap.png"), 
 ]
 
 kBirdAnimInterval = 20;
