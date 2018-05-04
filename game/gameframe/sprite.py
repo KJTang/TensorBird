@@ -22,6 +22,28 @@ class Sprite():
             self._size = Vector2(self._img.get_width(), self._img.get_height());
         self._rect = Rect(self.Position.x, self.Position.y, self.Size.x, self.Size.y);
 
+        self._enable = False;
+        self.Enable = True;
+
+    @property
+    def Enable(self): 
+        return self._enable;
+
+    @Enable.setter
+    def Enable(self, val): 
+        if val != self._enable: 
+            if val: 
+                self.OnEnable();
+            else: 
+                self.OnDisable();
+        self._enable = val;
+
+    def OnEnable(self): 
+        pass
+
+    def OnDisable(self): 
+        pass
+
     def Update(self): 
         pass;
 
@@ -38,11 +60,15 @@ class Sprite():
             if self._children[i] == child: 
                 self._children.pop(i);
                 if destroy: 
-                    del child;
+                    child.Destroy();
                 break;
 
     def GetChildren(self): 
         return self._children;
+
+    def Destroy(self): 
+        self.Enable = False;
+        del self;
 
     @property
     def Parent(self):

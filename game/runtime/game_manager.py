@@ -24,7 +24,7 @@ class GameManager(Singleton):
 
     def Restart(self, scene): 
         if not self._entry_scene is None: 
-            del self._entry_scene;
+            self._entry_scene.Destroy();
         self._entry_scene = scene;
 
         self._running = True;
@@ -63,6 +63,8 @@ class GameManager(Singleton):
         self.InternalUpdate(self._entry_scene);
 
     def InternalUpdate(self, sprite): 
+        if not sprite.Enable: 
+            return;
         sprite.Update();
         for child in sprite.GetChildren(): 
             self.InternalUpdate(child);
@@ -72,12 +74,16 @@ class GameManager(Singleton):
         self._logger.Render(screen);
 
     def InternalRender(self, screen, sprite): 
+        if not sprite.Enable: 
+            return;
         sprite.Render(screen);
         for child in sprite.GetChildren(): 
             self.InternalRender(screen, child);
 
     def OnGameQuit(self): 
         self._running = False;
+        if self._entry_scene is not None: 
+            self._entry_scene.Destroy();
 
     def OnBirdDied(self): 
         self._need_restart = True;

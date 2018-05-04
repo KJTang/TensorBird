@@ -47,7 +47,11 @@ class PlayScene(Sprite):
         self.reward = Reward();
         self.AddChild(self.reward);
 
+    def OnEnable(self): 
         event_manager.Register("GAME_REWARD", self.OnRewarding);
+
+    def OnDisable(self): 
+        event_manager.Unregister("GAME_REWARD", self.OnRewarding);
 
     def Update(self): 
         pipes = self.pipe_creator.GetPipes()

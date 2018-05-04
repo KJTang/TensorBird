@@ -24,7 +24,12 @@ class Bird(Animation):
     def __init__(self):
         Animation.__init__(self, kBirdAnimPath[0], kBirdAnimPath, kBirdAnimInterval);
         self._velocity = 0;
+
+    def OnEnable(self): 
         event_manager.Register("GAME_FLAP", self.Flap);
+
+    def OnDisable(self): 
+        event_manager.Unregister("GAME_FLAP", self.Flap);
 
     def Flap(self): 
         self._velocity = kBirdFlapVelocity;
