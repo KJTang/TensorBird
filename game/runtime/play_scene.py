@@ -59,6 +59,8 @@ class PlayScene(Sprite):
         # collision check
         if Rect.isOverlapRect(self.bird.Rect, self.foreground.Rect): 
             event_manager.Dispatch("GAME_DIED");
+        elif self.bird.Position.y <= 0: 
+            event_manager.Dispatch("GAME_DIED");
         else: 
             for pipe in pipes: 
                 if Rect.isOverlapRect(self.bird.Rect, pipe.Rect): 
