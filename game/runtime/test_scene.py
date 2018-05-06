@@ -15,8 +15,8 @@ event_manager = EventManager();
 sprite_loader = SpriteLoader();
 
 kBirdPath = sprite_loader.GetImagePath("image/background-white.png");
-# kBirdInterval = [30, 300];
-kBirdInterval = 60;
+# kBirdPath = sprite_loader.GetImagePath("image/redbird-midflap.png");
+kBirdInterval = 6;
 
 kBirdOriginPosX = game_manager.ScreenWidth * 0.5;
 kBirdOriginPosY = game_manager.ScreenHeight * 0.5;
@@ -33,7 +33,6 @@ class TestScene(Sprite):
         self.AddChild(self.reward);
 
         self.timer = 0;
-        # self.cur_interval = random.randrange(kBirdInterval[0], kBirdInterval[1]);
         self.cur_interval = kBirdInterval;
 
     def OnEnable(self): 
@@ -49,11 +48,10 @@ class TestScene(Sprite):
         if self.timer >= self.cur_interval: 
             if self.bird is None: 
                 self.timer = 0;
-                # self.cur_interval = random.randrange(kBirdInterval[0], kBirdInterval[1]);
                 self.cur_interval = kBirdInterval;
 
                 self.bird = Sprite(kBirdPath);
-                # self.bird.LocalPosition = Vector2(kBirdOriginPosX, kBirdOriginPosY);
+                self.bird.LocalPosition = Vector2(kBirdOriginPosX, kBirdOriginPosY);
                 self.AddChild(self.bird);
             else: # didnt flap
                 event_manager.Dispatch("GAME_DIED");
