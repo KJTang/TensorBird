@@ -55,9 +55,9 @@ class GameApp():
 
             if game_manager.NeedRestart: 
                 game_manager.Restart(PlayScene());
-        
 
-   def ManualGameLoop(self, actions = [1, 0]): 
+
+    def ManualGameLoop(self, actions = [1, 0]): 
         image_data = None;
         terminal = False;
         reward = game_manager.Reward;
@@ -92,11 +92,9 @@ class GameApp():
             reward = 0.0;
         if game_manager.NeedRestart: 
             terminal = True;
-            game_manager.Restart(TestScene());
+            game_manager.Restart(PlayScene());
 
         return image_data, reward, terminal
-
-
 
 def main(): 
     game = GameApp();
