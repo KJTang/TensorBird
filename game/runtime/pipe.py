@@ -37,7 +37,7 @@ class PipeCreator(Sprite):
     def __init__(self, interval = kPipeCreateInterval): 
         Sprite.__init__(self, "");
         self._interval = interval;
-        self._timer = 0;
+        self._timer = kPipeCreateInterval;
         self._pipes = [];
         self._created = 0;  # debug
 

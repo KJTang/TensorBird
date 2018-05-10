@@ -18,7 +18,7 @@ kBackgroundPath = sprite_loader.GetImagePath("image/background-black.png");
 kForegroundPath = sprite_loader.GetImagePath("image/base.png");
 
 kBirdOriginPosX = game_manager.ScreenWidth * 0.3;
-kBirdOriginPosY = game_manager.ScreenHeight * 0.1;
+kBirdOriginPosY = game_manager.ScreenHeight * 0.3;
 
 class PlayScene(Sprite):
     def __init__(self):

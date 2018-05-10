@@ -6,7 +6,7 @@ import random
 
 import sys
 sys.path.append("game/")
-from flappybird import GameApp
+from flappybird_test import GameApp     # use simplified game to test first
 game = GameApp();
 game.Init();
 
@@ -19,81 +19,42 @@ kActionPool = [
 kActionCnt = len(kActionPool);
 
 kGamma = 0.99           # decay rate of past observations
-kObserve = 10000;       # timesteps before training
-kExplore = 3000000;     # frames over to anneal epsilon
-kEpsilonInit = 0.1000;
+kObserve = 2000;        # timesteps before training
+kExplore = 20000;       # frames over to anneal epsilon
+kEpsilonInit = 0.2000;
 kEpsilonFinal = 0.0001;
 
 kReplayMemSize = 50000;
 kMiniBatchSize = 32;
 
-kCheckpointPath = "saved_networks"
-kSavePath = "flappybird";
+kCheckpointPath = "saved_networks_test"
+kSavePath = "flappybird_test";
 kSaveInterval = 1000;
 
-kFramePerAction = 3;    # passed kFramePerAction frames, take 1 action
+kFramePerAction = 1;    # passed kFramePerAction frames, take 1 action
 
 def TickGame(action = kActionStay): 
     image_data, reward, terminal = game.ManualGameLoop(action); 
 
-    # resize & convert image data
-    image_data = cv2.cvtColor(cv2.resize(image_data, (80, 80)), cv2.COLOR_BGR2GRAY);
+    # image
+    image_data = cv2.cvtColor(cv2.resize(image_data, (4, 4)), cv2.COLOR_BGR2GRAY);
     ret, image_data = cv2.threshold(image_data, 1, 255, cv2.THRESH_BINARY);
-    image_data = np.stack((image_data, image_data, image_data, image_data), axis=2);    # 4 stack
+    image_data = np.reshape(image_data, (4, 4, 1));
 
     return image_data, reward, terminal;
 
-
 def CreateNetwork(): 
-    # output: 80 * 80 * 4
-    input_layer = tf.placeholder("float", [None, 80, 80, 4]);
-
-    # output: 20 * 20 * 32
+    input_layer = tf.placeholder("float", [None, 4, 4, 1]);
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
-        filters=32,
-        strides=4,
-        kernel_size=[8, 8],
-        padding="same",
-        activation=tf.nn.relu
-    )
-
-    # output: 10 * 10 * 32
-    pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
-
-    # output: 5 * 5 * 64
-    conv2 = tf.layers.conv2d(
-        inputs=pool1,
-        filters=64,
-        strides=2,
-        kernel_size=[4, 4],
-        padding="same",
-        activation=tf.nn.relu
-    )
-
-    # output: 3 * 3 * 64
-    pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, padding="same")
-    
-    # output: 3 * 3 * 64
-    conv3 = tf.layers.conv2d(
-        inputs=pool2,
-        filters=64,
-        strides=1,
+        filters=4, 
         kernel_size=[3, 3],
         padding="same",
         activation=tf.nn.relu
     )
-
-    # output: 2 * 2 * 64
-    pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2, padding="same")
-    pool3_flat = tf.reshape(pool3, [-1, 2 * 2 * 64])
-
-    # output: 256
-    dense = tf.layers.dense(inputs=pool3_flat, units=256, activation=tf.nn.relu)
-
-    # output: 2
-    output_layer = tf.layers.dense(inputs=dense, units=kActionCnt)
-
+    pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
+    pool1_flat = tf.reshape(pool1, [-1, 2 * 2 * 4])
+    output_layer = tf.layers.dense(inputs=pool1_flat, units=kActionCnt);
     return input_layer, output_layer;
 
 

@@ -17,8 +17,8 @@ kBirdAnimPath = [
 ]
 
 kBirdAnimInterval = 20;
-kBirdFlapVelocity = 3;
-kBirdAcceleration = -0.1;
+kBirdFlapVelocity = 5;
+kBirdAcceleration = -0.3;
 
 class Bird(Animation):
     def __init__(self):
