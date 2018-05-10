@@ -35,6 +35,7 @@ class Bird(Animation):
         self._velocity = kBirdFlapVelocity;
 
     def Update(self): 
+        Animation.Update(self);
         passedTime = 1;     # passed 1 frame
         lastV = self._velocity;
         curV = self._velocity + kBirdAcceleration * passedTime; 

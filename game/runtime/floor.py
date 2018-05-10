@@ -40,5 +40,8 @@ class Floor(Sprite):
 
     @property
     def Rect(self): 
-        self._rect = Rect(self._floor_a.Position.x, self._floor_a.Position.y, self._floor_width * 2, self._floor_height);
+        if self._floor_a.Position.x < self._floor_b.Position.x: 
+            self._rect = Rect(self._floor_a.Position.x, self._floor_a.Position.y, self._floor_width * 2, self._floor_height);
+        else:
+            self._rect = Rect(self._floor_b.Position.x, self._floor_b.Position.y, self._floor_width * 2, self._floor_height);
         return self._rect;
