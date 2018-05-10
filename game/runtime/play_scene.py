@@ -9,13 +9,13 @@ from runtime.sprite_loader import SpriteLoader
 from runtime.bird import Bird
 from runtime.reward import Reward
 from runtime.pipe import PipeCreator
+from runtime.floor import Floor
 
 game_manager = GameManager();
 event_manager = EventManager();
 sprite_loader = SpriteLoader();
 
 kBackgroundPath = sprite_loader.GetImagePath("image/background-black.png");
-kForegroundPath = sprite_loader.GetImagePath("image/base.png");
 
 kBirdOriginPosX = game_manager.ScreenWidth * 0.3;
 kBirdOriginPosY = game_manager.ScreenHeight * 0.3;
@@ -33,10 +33,9 @@ class PlayScene(Sprite):
         self.AddChild(self.pipe_creator);
         self.lastPipe = None;
 
-        # fg
-        self.foreground = Sprite(kForegroundPath);
-        self.foreground.LocalPosition = Vector2(abs(game_manager.ScreenWidth - self.foreground.Width) / 2, game_manager.ScreenHeight - self.foreground.Height);
-        self.AddChild(self.foreground);
+        # floor
+        self.floor = Floor();
+        self.AddChild(self.floor);
 
         # bird
         self.bird = Bird();
@@ -57,7 +56,7 @@ class PlayScene(Sprite):
         pipes = self.pipe_creator.GetPipes()
 
         # collision check
-        if Rect.isOverlapRect(self.bird.Rect, self.foreground.Rect): 
+        if Rect.isOverlapRect(self.bird.Rect, self.floor.Rect): 
             event_manager.Dispatch("GAME_DIED");
         elif self.bird.Position.y <= 0: 
             event_manager.Dispatch("GAME_DIED");
