@@ -20,7 +20,7 @@ kActionCnt = len(kActionPool);
 
 kGamma = 0.99           # decay rate of past observations
 kObserve = 10000;       # timesteps before training
-kExplore = 3000000;     # frames over to anneal epsilon
+kExplore = 2000000;     # frames over to anneal epsilon
 kEpsilonInit = 0.2000;
 kEpsilonFinal = 0.0001;
 
@@ -34,12 +34,19 @@ kSaveInterval = 1000;
 kFramePerAction = 3;    # passed kFramePerAction frames, take 1 action
 
 def TickGame(action = kActionStay): 
-    image_data, reward, terminal = game.ManualGameLoop(action); 
+    image_data, last_score, cur_score, terminal = game.ManualGameLoop(action); 
 
     # resize & convert image data
     image_data = cv2.cvtColor(cv2.resize(image_data, (80, 80)), cv2.COLOR_BGR2GRAY);
     ret, image_data = cv2.threshold(image_data, 1, 255, cv2.THRESH_BINARY);
     image_data = np.stack((image_data, image_data, image_data, image_data), axis=2);    # 4 stack
+
+    # normalize reward
+    reward = 0.1;
+    if terminal: 
+        reward = -1.0;
+    elif cur_score > last_score: 
+        reward = 1.0;
 
     return image_data, reward, terminal;
 

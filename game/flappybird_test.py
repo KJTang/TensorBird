@@ -60,7 +60,7 @@ class GameApp():
     def ManualGameLoop(self, actions = [1, 0]): 
         image_data = None;
         terminal = False;
-        reward = game_manager.Reward;
+        last_reward = game_manager.Reward;
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -83,18 +83,12 @@ class GameApp():
         self._clock.tick(game_manager.TargetFPS);
 
         image_data = pygame.surfarray.array3d(pygame.display.get_surface());
-        # normalize reward
-        if reward > game_manager.Reward: 
-            reward = 1.0;
-        elif game_manager.NeedRestart: 
-            reward = -1.0;
-        else: 
-            reward = 0.0;
+        cur_reward = game_manager.Reward;
         if game_manager.NeedRestart: 
             terminal = True;
             game_manager.Restart(TestScene());
 
-        return image_data, reward, terminal
+        return image_data, last_reward, cur_reward, terminal
 
 
 
