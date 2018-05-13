@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from collections import deque
 import random
+import os
 
 import sys
 sys.path.append("game/")
@@ -30,6 +31,8 @@ kMiniBatchSize = 32;
 kCheckpointPath = "saved_networks_test"
 kSavePath = "flappybird_test";
 kSaveInterval = 1000;
+kLogPath = "log_test/";
+kLogInterval = 500;
 
 kFramePerAction = 1;    # passed kFramePerAction frames, take 1 action
 
@@ -40,6 +43,7 @@ def TickGame(action = kActionStay):
     image_data = cv2.cvtColor(cv2.resize(image_data, (4, 4)), cv2.COLOR_BGR2GRAY);
     ret, image_data = cv2.threshold(image_data, 1, 255, cv2.THRESH_BINARY);
     image_data = np.reshape(image_data, (4, 4, 1));
+    tf.summary.image('preprocess', tf.reshape(image_data, [-1, 4, 4, 1]), 10)
 
     # normalize reward
     reward = 0.1;
@@ -59,6 +63,8 @@ def CreateNetwork():
         padding="same",
         activation=tf.nn.relu
     )
+    DrawLayerHistogram(conv1, "conv1");
+
     pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
     pool1_flat = tf.reshape(pool1, [-1, 2 * 2 * 4])
     output_layer = tf.layers.dense(inputs=pool1_flat, units=kActionCnt);
@@ -72,6 +78,7 @@ def TrainNetwork(input_layer, output_layer, sess):
     y_ = tf.reduce_sum(tf.multiply(output_layer, a), reduction_indices=1)
     loss = tf.reduce_mean(tf.square(y - y_))
     train_step = tf.train.AdamOptimizer(1e-6).minimize(loss)
+    tf.summary.scalar('loss', loss);
 
     # store the previous observations in replay memory
     replayMem = deque()
@@ -88,6 +95,10 @@ def TrainNetwork(input_layer, output_layer, sess):
         print("Successfully loaded:", checkpoint.model_checkpoint_path)
     else:
         print("Could not find old network weights")
+
+    # genrate log on tensorboard
+    merged_summary = tf.summary.merge_all();
+    log_writer = tf.summary.FileWriter(kLogPath, sess.graph);
         
     # start training
     epsilon = kEpsilonInit
@@ -139,11 +150,19 @@ def TrainNetwork(input_layer, output_layer, sess):
                     y_batch.append(r_batch[i] + kGamma * np.max(a_next_batch[i]))
 
             # perform gradient step
-            train_step.run(feed_dict = {
-                y : y_batch,
-                a : a_batch,
-                input_layer : s_batch}
-            )
+            if t % kLogInterval == 0: 
+                summary, _ = sess.run([merged_summary, train_step], feed_dict = {
+                    y : y_batch,
+                    a : a_batch,
+                    input_layer : s_batch}
+                )
+                log_writer.add_summary(summary, t);
+            else: 
+                train_step.run(feed_dict = {
+                    y : y_batch,
+                    a : a_batch,
+                    input_layer : s_batch}
+                )
 
         # update the old values
         s_t = s_t_next
@@ -170,6 +189,28 @@ def TrainNetwork(input_layer, output_layer, sess):
             "/ OUTPUT", output_t)
 
 
+def DrawLayerHistogram(layer, name): 
+    with tf.name_scope(name): 
+        weight = tf.get_default_graph().get_tensor_by_name(os.path.split(layer.name)[0] + '/kernel:0')
+        bias = tf.get_default_graph().get_tensor_by_name(os.path.split(layer.name)[0] + '/bias:0')
+
+        with tf.name_scope("weight"): 
+            mean = tf.reduce_mean(weight)
+            stddev = tf.sqrt(tf.reduce_mean(tf.square(weight - mean)))
+
+            tf.summary.scalar('stddev', stddev)
+            tf.summary.scalar('max', tf.reduce_max(weight))
+            tf.summary.scalar('min', tf.reduce_min(weight))
+            tf.summary.histogram("weight", weight);
+
+        with tf.name_scope("bias"): 
+            mean = tf.reduce_mean(bias)
+            stddev = tf.sqrt(tf.reduce_mean(tf.square(bias - mean)))
+
+            tf.summary.scalar('stddev', stddev)
+            tf.summary.scalar('max', tf.reduce_max(bias))
+            tf.summary.scalar('min', tf.reduce_min(bias))
+            tf.summary.histogram("bias", bias);
 
 def main(): 
     sess = tf.InteractiveSession()
