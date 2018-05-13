@@ -1,2 +1,6 @@
-model_checkpoint_path: "flappybird-dqn-1000"
-all_model_checkpoint_paths: "flappybird-dqn-1000"
+model_checkpoint_path: "flappybird-dqn-2027000"
+all_model_checkpoint_paths: "flappybird-dqn-2023000"
+all_model_checkpoint_paths: "flappybird-dqn-2024000"
+all_model_checkpoint_paths: "flappybird-dqn-2025000"
+all_model_checkpoint_paths: "flappybird-dqn-2026000"
+all_model_checkpoint_paths: "flappybird-dqn-2027000"
