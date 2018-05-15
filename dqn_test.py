@@ -43,7 +43,7 @@ def TickGame(action = kActionStay):
     image_data = cv2.cvtColor(cv2.resize(image_data, (4, 4)), cv2.COLOR_BGR2GRAY);
     ret, image_data = cv2.threshold(image_data, 1, 255, cv2.THRESH_BINARY);
     image_data = np.reshape(image_data, (4, 4, 1));
-    tf.summary.image('preprocess', tf.reshape(image_data, [-1, 4, 4, 1]), 10)
+    # tf.summary.image('preprocess', tf.reshape(image_data, [-1, 4, 4, 1]), 10)
 
     # normalize reward
     reward = 0.1;

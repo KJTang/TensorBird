@@ -42,7 +42,7 @@ def TickGame(action = kActionStay):
     # resize & convert image data
     image_data = cv2.cvtColor(cv2.resize(image_data, (80, 80)), cv2.COLOR_BGR2GRAY);
     ret, image_data = cv2.threshold(image_data, 1, 255, cv2.THRESH_BINARY);
-    tf.summary.image('preprocess', tf.reshape(image_data, [-1, 80, 80, 1]), 10)
+    # tf.summary.image('preprocess', tf.reshape(image_data, [-1, 80, 80, 1]), 10)
     image_data = np.stack((image_data, image_data, image_data, image_data), axis=2);    # 4 stack
 
     # normalize reward
