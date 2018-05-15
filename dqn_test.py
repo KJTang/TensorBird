@@ -28,6 +28,8 @@ kEpsilonFinal = 0.0001;
 kReplayMemSize = 50000;
 kMiniBatchSize = 32;
 
+kTargetQUpdateInterval = 100;
+
 kCheckpointPath = "saved_networks_test"
 kSavePath = "flappybird_test";
 kSaveInterval = 1000;
@@ -54,24 +56,30 @@ def TickGame(action = kActionStay):
 
     return image_data, reward, terminal;
 
-def CreateNetwork(): 
-    input_layer = tf.placeholder("float", [None, 4, 4, 1]);
-    conv1 = tf.layers.conv2d(
-        inputs=input_layer,
-        filters=4, 
-        kernel_size=[3, 3],
-        padding="same",
-        activation=tf.nn.relu
-    )
-    DrawLayerHistogram(conv1, "conv1");
+def CreateNetwork(scope): 
+    with tf.variable_scope(scope): 
+        input_layer = tf.placeholder("float", [None, 4, 4, 1]);
+        conv1 = tf.layers.conv2d(
+            inputs=input_layer,
+            filters=4, 
+            kernel_size=[3, 3],
+            padding="same",
+            activation=tf.nn.relu
+        )
+        DrawLayerHistogram(conv1, "conv1");
 
-    pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
-    pool1_flat = tf.reshape(pool1, [-1, 2 * 2 * 4])
-    output_layer = tf.layers.dense(inputs=pool1_flat, units=kActionCnt);
-    return input_layer, output_layer;
+        pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
+        pool1_flat = tf.reshape(pool1, [-1, 2 * 2 * 4])
+        output_layer = tf.layers.dense(inputs=pool1_flat, units=kActionCnt);
+        return {'input':input_layer, 'output':output_layer};
 
 
-def TrainNetwork(input_layer, output_layer, sess): 
+def TrainNetwork(eval_net, target_net, sess): 
+    input_layer = eval_net['input'];
+    output_layer = eval_net['output']; 
+    target_input_layer = target_net['input'];
+    target_output_layer = target_net['output'];
+
     # define the loss function
     a = tf.placeholder("float", [None, kActionCnt])
     y = tf.placeholder("float", [None])
@@ -79,6 +87,12 @@ def TrainNetwork(input_layer, output_layer, sess):
     loss = tf.reduce_mean(tf.square(y - y_))
     train_step = tf.train.AdamOptimizer(1e-6).minimize(loss)
     tf.summary.scalar('loss', loss);
+
+    # update target Q parameters
+    t_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
+    e_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='eval_net')
+    with tf.variable_scope('soft_replacement'):
+        target_replace_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]
 
     # store the previous observations in replay memory
     replayMem = deque()
@@ -140,7 +154,8 @@ def TrainNetwork(input_layer, output_layer, sess):
             s_next_batch  = [d[3] for d in minibatch]
 
             y_batch = []
-            a_next_batch = output_layer.eval(feed_dict = {input_layer : s_next_batch})
+            # a_next_batch = output_layer.eval(feed_dict = {input_layer : s_next_batch})
+            a_next_batch = target_output_layer.eval(feed_dict = {target_input_layer : s_next_batch})
             for i in range(0, len(minibatch)):
                 terminal = minibatch[i][4]
                 # if terminal, only equals reward
@@ -163,6 +178,10 @@ def TrainNetwork(input_layer, output_layer, sess):
                     a : a_batch,
                     input_layer : s_batch}
                 )
+
+            # update target q net
+            if t % kTargetQUpdateInterval == 0:
+                sess.run(target_replace_op);
 
         # update the old values
         s_t = s_t_next
@@ -214,8 +233,9 @@ def DrawLayerHistogram(layer, name):
 
 def main(): 
     sess = tf.InteractiveSession()
-    input_layer, output_layer = CreateNetwork()
-    TrainNetwork(input_layer, output_layer, sess)
+    eval_net = CreateNetwork('eval_net')
+    target_net = CreateNetwork('target_net')
+    TrainNetwork(eval_net, target_net, sess)
 
 if __name__=="__main__":
     main() 

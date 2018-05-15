@@ -20,13 +20,15 @@ kActionPool = [
 kActionCnt = len(kActionPool);
 
 kGamma = 0.99           # decay rate of past observations
-kObserve = 10000;       # timesteps before training
+kObserve = 100;       # timesteps before training
 kExplore = 2000000;     # frames over to anneal epsilon
 kEpsilonInit = 0.2000;
 kEpsilonFinal = 0.0001;
 
 kReplayMemSize = 50000;
 kMiniBatchSize = 32;
+
+kTargetQUpdateInterval = 100;
 
 kCheckpointPath = "saved_networks"
 kSavePath = "flappybird";
@@ -54,64 +56,68 @@ def TickGame(action = kActionStay):
 
     return image_data, reward, terminal;
 
+def CreateNetwork(scope): 
+    with tf.variable_scope(scope): 
+        # output: 80 * 80 * 4
+        input_layer = tf.placeholder("float", [None, 80, 80, 4]);
 
-def CreateNetwork(): 
-    # output: 80 * 80 * 4
-    input_layer = tf.placeholder("float", [None, 80, 80, 4]);
+        # output: 20 * 20 * 32
+        conv1 = tf.layers.conv2d(
+            inputs=input_layer,
+            filters=32,
+            strides=4,
+            kernel_size=[8, 8],
+            padding="same",
+            activation=tf.nn.relu
+        )
+        DrawLayerHistogram(conv1, "conv1");
 
-    # output: 20 * 20 * 32
-    conv1 = tf.layers.conv2d(
-        inputs=input_layer,
-        filters=32,
-        strides=4,
-        kernel_size=[8, 8],
-        padding="same",
-        activation=tf.nn.relu
-    )
-    DrawLayerHistogram(conv1, "conv1");
+        # output: 10 * 10 * 32
+        pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
 
-    # output: 10 * 10 * 32
-    pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
+        # output: 5 * 5 * 64
+        conv2 = tf.layers.conv2d(
+            inputs=pool1,
+            filters=64,
+            strides=2,
+            kernel_size=[4, 4],
+            padding="same",
+            activation=tf.nn.relu
+        )
+        # DrawLayerHistogram(conv2, "conv2");
 
-    # output: 5 * 5 * 64
-    conv2 = tf.layers.conv2d(
-        inputs=pool1,
-        filters=64,
-        strides=2,
-        kernel_size=[4, 4],
-        padding="same",
-        activation=tf.nn.relu
-    )
-    # DrawLayerHistogram(conv2, "conv2");
+        # output: 3 * 3 * 64
+        pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, padding="same")
+        
+        # output: 3 * 3 * 64
+        conv3 = tf.layers.conv2d(
+            inputs=pool2,
+            filters=64,
+            strides=1,
+            kernel_size=[3, 3],
+            padding="same",
+            activation=tf.nn.relu
+        )
+        # DrawLayerHistogram(conv3, "conv3");
 
-    # output: 3 * 3 * 64
-    pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, padding="same")
-    
-    # output: 3 * 3 * 64
-    conv3 = tf.layers.conv2d(
-        inputs=pool2,
-        filters=64,
-        strides=1,
-        kernel_size=[3, 3],
-        padding="same",
-        activation=tf.nn.relu
-    )
-    # DrawLayerHistogram(conv3, "conv3");
+        # output: 2 * 2 * 64
+        pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2, padding="same")
+        pool3_flat = tf.reshape(pool3, [-1, 2 * 2 * 64])
 
-    # output: 2 * 2 * 64
-    pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2, padding="same")
-    pool3_flat = tf.reshape(pool3, [-1, 2 * 2 * 64])
+        # output: 256
+        dense = tf.layers.dense(inputs=pool3_flat, units=256, activation=tf.nn.relu)
 
-    # output: 256
-    dense = tf.layers.dense(inputs=pool3_flat, units=256, activation=tf.nn.relu)
+        # output: 2
+        output_layer = tf.layers.dense(inputs=dense, units=kActionCnt)
 
-    # output: 2
-    output_layer = tf.layers.dense(inputs=dense, units=kActionCnt)
+        return {'input':input_layer, 'output':output_layer};
 
-    return input_layer, output_layer;
+def TrainNetwork(eval_net, target_net, sess): 
+    input_layer = eval_net['input'];
+    output_layer = eval_net['output']; 
+    target_input_layer = target_net['input'];
+    target_output_layer = target_net['output'];
 
-
-def TrainNetwork(input_layer, output_layer, sess): 
     # define the loss function
     a = tf.placeholder("float", [None, kActionCnt])
     y = tf.placeholder("float", [None])
@@ -119,6 +125,12 @@ def TrainNetwork(input_layer, output_layer, sess):
     loss = tf.reduce_mean(tf.square(y - y_))
     train_step = tf.train.AdamOptimizer(1e-6).minimize(loss)
     tf.summary.scalar('loss', loss);
+
+    # update target Q parameters
+    t_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
+    e_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='eval_net')
+    with tf.variable_scope('soft_replacement'):
+        target_replace_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]
 
     # store the previous observations in replay memory
     replayMem = deque()
@@ -180,7 +192,8 @@ def TrainNetwork(input_layer, output_layer, sess):
             s_next_batch  = [d[3] for d in minibatch]
 
             y_batch = []
-            a_next_batch = output_layer.eval(feed_dict = {input_layer : s_next_batch})
+            # a_next_batch = output_layer.eval(feed_dict = {input_layer : s_next_batch})
+            a_next_batch = target_output_layer.eval(feed_dict = {target_input_layer : s_next_batch})
             for i in range(0, len(minibatch)):
                 terminal = minibatch[i][4]
                 # if terminal, only equals reward
@@ -203,6 +216,10 @@ def TrainNetwork(input_layer, output_layer, sess):
                     a : a_batch,
                     input_layer : s_batch}
                 )
+
+            # update target q net
+            if t % kTargetQUpdateInterval == 0:
+                sess.run(target_replace_op);
 
         # update the old values
         s_t = s_t_next
@@ -254,8 +271,9 @@ def DrawLayerHistogram(layer, name):
 
 def main(): 
     sess = tf.InteractiveSession()
-    input_layer, output_layer = CreateNetwork()
-    TrainNetwork(input_layer, output_layer, sess)
+    eval_net = CreateNetwork('eval_net')
+    target_net = CreateNetwork('target_net')
+    TrainNetwork(eval_net, target_net, sess)
 
 if __name__=="__main__":
     main() 
