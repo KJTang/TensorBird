@@ -26,7 +26,7 @@ kEpsilonInit = 0.2000;
 kEpsilonFinal = 0.0001;
 
 kReplayMemSize = 50000;
-kMiniBatchSize = 32;
+kMiniBatchSize = 64;
 
 kTargetQUpdateInterval = 100;
 
