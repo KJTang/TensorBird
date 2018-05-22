@@ -26,7 +26,7 @@ kEpsilonInit = 0.2000;
 kEpsilonFinal = 0.0001;
 
 kReplayMemSize = 50000;
-kMiniBatchSize = 64;
+kMiniBatchSize = 32;
 
 kTargetQUpdateInterval = 100;
 
@@ -191,9 +191,19 @@ def TrainNetwork(eval_net, target_net, sess):
             r_batch     = [d[2] for d in minibatch]
             s_next_batch  = [d[3] for d in minibatch]
 
-            y_batch = []
+            # 1: origin
             # a_next_batch = output_layer.eval(feed_dict = {input_layer : s_next_batch})
-            a_next_batch = target_output_layer.eval(feed_dict = {target_input_layer : s_next_batch})
+            # 2: target q
+            # a_next_batch = target_output_layer.eval(feed_dict = {target_input_layer : s_next_batch})
+            # 3: double dqn
+            eval_a = output_layer.eval(feed_dict = {input_layer : s_next_batch})
+            eval_s = s_next_batch[int(np.argmax(eval_a) / 2)];
+            a_next = target_output_layer.eval(feed_dict = {target_input_layer : [eval_s]})
+            a_next_batch = []
+            for i in range(0, len(minibatch)): 
+                a_next_batch.append(a_next);
+                
+            y_batch = []
             for i in range(0, len(minibatch)):
                 terminal = minibatch[i][4]
                 # if terminal, only equals reward
