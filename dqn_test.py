@@ -24,6 +24,8 @@ kObserve = 1000;        # timesteps before training
 kExplore = 10000;       # frames over to anneal epsilon
 kEpsilonInit = 0.2000;
 kEpsilonFinal = 0.0001;
+kEpsilonStep = (kEpsilonInit - kEpsilonFinal) / kExplore
+kEpsilonStep = kEpsilonStep if kEpsilonStep > 0 else 0;
 
 kReplayMemSize = 50000;
 kMiniBatchSize = 32;
@@ -115,9 +117,18 @@ def TrainNetwork(eval_net, target_net, sess):
     log_writer = tf.summary.FileWriter(kLogPath, sess.graph);
         
     # start training
-    epsilon = kEpsilonInit
-    t = 0
-    while True:
+    state = "observe";
+    t = 0;
+    epsilon = kEpsilonInit;
+    while True: 
+        # state
+        if state == "observe" and t >= kObserve: 
+            t -= kObserve;
+            state = "explore";
+        elif state == "explore" and t >= kExplore: 
+            t -= kExplore;
+            state = "train";
+
         # choose an action epsilon greedily
         output_t = output_layer.eval(feed_dict={input_layer : [s_t]})
         a_t = kActionStay
@@ -130,8 +141,8 @@ def TrainNetwork(eval_net, target_net, sess):
             a_t = kActionPool[action_index];
 
         # scale down epsilon
-        if epsilon > kEpsilonFinal and t > kObserve:
-            epsilon -= (kEpsilonInit - kEpsilonFinal) / kExplore
+        if state != "observe" and epsilon > kEpsilonFinal: 
+            epsilon -= kEpsilonStep
             epsilon = epsilon if epsilon > kEpsilonFinal else kEpsilonFinal;
 
         # run the selected action and observe next state and reward
@@ -143,7 +154,7 @@ def TrainNetwork(eval_net, target_net, sess):
             replayMem.popleft()
 
         # only train if done observing
-        if t > kObserve:
+        if state != "observe":
             # sample a minibatch to train on
             minibatch = random.sample(replayMem, kMiniBatchSize)
 
@@ -153,7 +164,7 @@ def TrainNetwork(eval_net, target_net, sess):
             r_batch     = [d[2] for d in minibatch]
             s_next_batch  = [d[3] for d in minibatch]
 
-            # 1: origin
+            # 1: dqn
             # a_next_batch = output_layer.eval(feed_dict = {input_layer : s_next_batch})
             # 2: target q
             # a_next_batch = target_output_layer.eval(feed_dict = {target_input_layer : s_next_batch})
@@ -202,15 +213,15 @@ def TrainNetwork(eval_net, target_net, sess):
             saver.save(sess, kCheckpointPath + '/' + kSavePath + '-dqn', global_step = t)
 
         # print info
-        state = ""
-        if t <= kObserve:
-            state = "observe"
-        elif t > kObserve and t <= kObserve + kExplore:
-            state = "explore"
-        else:
-            state = "train"
+        display_t = t;
+        if state == "observe": 
+            display_t = t;
+        elif state == "explore": 
+            display_t = t + kObserve;
+        elif state == "train": 
+            display_t = t + kObserve + kExplore;
 
-        print("TIMESTEP", t, \
+        print("TIMESTEP", display_t, \
             "/ STATE", state, \
             "/ EPSILON", epsilon, \
             "/ ACTION", action_index, \
