@@ -30,7 +30,7 @@ kEpsilonInit = 0.2000;
 kEpsilonFinal = 0.0001;
 kEpsilonStep = (kEpsilonInit - kEpsilonFinal) / kExplore
 kEpsilonStep = kEpsilonStep if kEpsilonStep > 0 else 0;
-kStartStep = 25248;
+kStartStep = 0;
 
 kReplayMemSize = 50000;
 kMiniBatchSize = 32;
