@@ -24,9 +24,9 @@ kActionPool = [
 kActionCnt = len(kActionPool);
 
 kGamma = 0.99           # decay rate of past observations
-kObserve = 1000;       # timesteps before training
+kObserve = 10000;       # timesteps before training
 kExplore = 2000000;     # frames over to anneal epsilon
-kEpsilonInit = 0.1000;
+kEpsilonInit = 0.0001;
 kEpsilonFinal = 0.0001;
 kEpsilonStep = (kEpsilonInit - kEpsilonFinal) / kExplore
 kEpsilonStep = kEpsilonStep if kEpsilonStep > 0 else 0;
