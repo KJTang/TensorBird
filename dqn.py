@@ -11,8 +11,8 @@ from flappybird import GameApp
 game = GameApp();
 game.Init();
 
-kAlgorithm = "DQN";
-# kAlgorithm = "Target Q";
+# kAlgorithm = "DQN";
+kAlgorithm = "Target Q";
 # kAlgorithm = "Double DQN";
 
 kActionFlap = [0, 1];
@@ -43,7 +43,7 @@ kSaveInterval = 1000;
 kLogPath = "log/";
 kLogInterval = 5000;
 
-kFramePerAction = 1;    # passed kFramePerAction frames, take 1 action
+kFramePerAction = 3;    # passed kFramePerAction frames, take 1 action
 
 def TickGame(action = kActionStay): 
     image_data, last_score, cur_score, terminal = game.ManualGameLoop(action); 
@@ -194,7 +194,14 @@ def TrainNetwork(eval_net, target_net, sess):
         output_t = output_layer.eval(feed_dict={input_layer : [s_t]})
         a_t = kActionStay
         action_index = 0
-        if t % kFramePerAction == 0:
+        if state == "observe": 
+	        if t % kFramePerAction == 0:
+	            if random.random() <= epsilon:
+	                action_index = random.randrange(kActionCnt);
+	            else:
+	                action_index = np.argmax(output_t)
+	            a_t = kActionPool[action_index];
+        else: 
             if random.random() <= epsilon:
                 action_index = random.randrange(kActionCnt);
             else:
@@ -297,7 +304,7 @@ def DrawLayerHistogram(layer, name):
             tf.summary.scalar('stddev', stddev)
             tf.summary.scalar('max', tf.reduce_max(weight))
             tf.summary.scalar('min', tf.reduce_min(weight))
-            tf.summary.histogram("weight", weight);
+            # tf.summary.histogram("weight", weight);
 
         with tf.name_scope("bias"): 
             mean = tf.reduce_mean(bias)
@@ -306,7 +313,7 @@ def DrawLayerHistogram(layer, name):
             tf.summary.scalar('stddev', stddev)
             tf.summary.scalar('max', tf.reduce_max(bias))
             tf.summary.scalar('min', tf.reduce_min(bias))
-            tf.summary.histogram("bias", bias);
+            # tf.summary.histogram("bias", bias);
 
 def main(): 
     sess = tf.InteractiveSession()
