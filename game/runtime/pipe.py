@@ -13,7 +13,7 @@ sprite_loader = SpriteLoader();
 kPipePath = sprite_loader.GetImagePath("image/pipe-green.png"); 
 kPipeSpeed = -3;
 kPipeGapHeight = 120;
-kPipeMaxOffset = 120;
+kPipeMaxOffset = 80;
 kPipeCreateInterval = 100;   # frames
 
 class Pipe(Sprite):

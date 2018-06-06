@@ -7,7 +7,7 @@ from gameframe.event import EventManager
 
 kScreenWidth = 336;
 kScreenHeight = 448;
-kTargetFPS = 60;
+kTargetFPS = 30;
 
 event_manager = EventManager();
 

@@ -43,7 +43,7 @@ kSaveInterval = 1000;
 kLogPath = "log/";
 kLogInterval = 5000;
 
-kFramePerAction = 3;    # passed kFramePerAction frames, take 1 action
+kFramePerAction = 1;    # passed kFramePerAction frames, take 1 action
 
 def TickGame(action = kActionStay): 
     image_data, last_score, cur_score, terminal = game.ManualGameLoop(action); 
@@ -194,14 +194,7 @@ def TrainNetwork(eval_net, target_net, sess):
         output_t = output_layer.eval(feed_dict={input_layer : [s_t]})
         a_t = kActionStay
         action_index = 0
-        if state == "observe": 
-	        if t % kFramePerAction == 0:
-	            if random.random() <= epsilon:
-	                action_index = random.randrange(kActionCnt);
-	            else:
-	                action_index = np.argmax(output_t)
-	            a_t = kActionPool[action_index];
-        else: 
+        if t % kFramePerAction == 0:
             if random.random() <= epsilon:
                 action_index = random.randrange(kActionCnt);
             else:
