@@ -1,6 +1,0 @@
-model_checkpoint_path: "flappybird_test-dqn-11000"
-all_model_checkpoint_paths: "flappybird_test-dqn-7000"
-all_model_checkpoint_paths: "flappybird_test-dqn-8000"
-all_model_checkpoint_paths: "flappybird_test-dqn-9000"
-all_model_checkpoint_paths: "flappybird_test-dqn-10000"
-all_model_checkpoint_paths: "flappybird_test-dqn-11000"
